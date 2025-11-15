@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import {
   Search,
@@ -19,6 +20,7 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
+import { SEGMENT_EXPLORER_SIMULATED_ERROR_MESSAGE } from "next/dist/next-devtools/userspace/app/segment-explorer-node";
 
 const CompleteBioLabAgent = () => {
   const [experiment, setExperiment] = useState("");
@@ -30,6 +32,7 @@ const CompleteBioLabAgent = () => {
   const [showProtocolDetails, setShowProtocolDetails] = useState({});
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [supplierAnalysis, setSupplierAnalysis] = useState(null);
+  const [items, setItems] = useState([]);
 
   // Mock AI API call (in real implementation, this calls Claude API)
   const analyzeExperimentWithAI = async (experimentText) => {
@@ -523,34 +526,48 @@ const CompleteBioLabAgent = () => {
 
     try {
       // Simulate AI analysis
-      const analysisResult = await analyzeExperimentWithAI(experiment);
-
-      setProtocols(analysisResult);
-      if (analysisResult.length > 0) {
-        setSelectedProtocol(analysisResult[0]);
-      }
-
-      // Generate AI analysis summary
-      setAiAnalysis({
-        experimentType:
-          analysisResult.length > 0
-            ? analysisResult[0].name.split(" ")[0]
-            : "General",
-        protocolsFound: analysisResult.length,
-        recommendedApproach:
-          analysisResult.length > 0
-            ? analysisResult[0].name
-            : "Standard approach",
-        keyConsiderations: [
-          "Consider your budget constraints",
-          "Evaluate required fidelity vs cost",
-          "Check equipment availability",
-          "Plan for reagent storage requirements",
-        ],
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ protocol_name: experiment }),
       });
 
-      // Generate supplier analysis
-      setSupplierAnalysis(generateSupplierAnalysis(analysisResult));
+      const data = await response.json();
+
+      if (data.items && Array.isArray(data.items)) {
+        setItems(data.items);
+      } else {
+        setItems([]);
+        console.warn('No items found in response:', data);
+      }
+      // setProtocols(analysisResult);
+      // if (analysisResult.length > 0) {
+      //   setSelectedProtocol(analysisResult[0]);
+      // }
+
+      // // Generate AI analysis summary
+      // setAiAnalysis({
+      //   experimentType:
+      //     analysisResult.length > 0
+      //       ? analysisResult[0].name.split(" ")[0]
+      //       : "General",
+      //   protocolsFound: analysisResult.length,
+      //   recommendedApproach:
+      //     analysisResult.length > 0
+      //       ? analysisResult[0].name
+      //       : "Standard approach",
+      //   keyConsiderations: [
+      //     "Consider your budget constraints",
+      //     "Evaluate required fidelity vs cost",
+      //     "Check equipment availability",
+      //     "Plan for reagent storage requirements",
+      //   ],
+      // });
+
+      // // Generate supplier analysis
+      // setSupplierAnalysis(generateSupplierAnalysis(analysisResult));
     } catch (error) {
       console.error("Analysis error:", error);
     } finally {
@@ -768,6 +785,73 @@ const CompleteBioLabAgent = () => {
             )}
           </div>
         </div>
+
+        {/* Items Display */}
+        {items.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <Package className="mr-2" />
+              Required Reagents & Equipment
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    {item.name || item.product || item.reagent || `Item ${idx + 1}`}
+                  </h4>
+                  
+                  {item.description && (
+                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                  )}
+                  
+                  {item.supplier && (
+                    <div className="mb-2">
+                      <span className="text-xs font-medium text-gray-500">Supplier:</span>
+                      <span className="ml-2 text-sm text-gray-800">{item.supplier}</span>
+                    </div>
+                  )}
+                  
+                  {(item.shippingTime || item.shipping_time) && (
+                    <div className="mb-2">
+                      <span className="text-xs font-medium text-gray-500">Shipping:</span>
+                      <span className="ml-2 text-sm text-gray-800">{item.shippingTime || item.shipping_time}</span>
+                    </div>
+                  )}
+                  
+                  {item.urls && Array.isArray(item.urls) && item.urls.length > 0 && (
+                    <div className="mt-3">
+                      <span className="text-xs font-medium text-gray-500 block mb-1">Purchase Links:</span>
+                      <div className="space-y-1">
+                        {item.urls.slice(0, 3).map((url, urlIdx) => (
+                          <a
+                            key={urlIdx}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline block truncate"
+                          >
+                            {url}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {item.price && (
+                    <div className="mt-2">
+                      <span className="text-sm font-semibold text-green-600">
+                        ${item.price}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* AI Analysis Summary */}
         {aiAnalysis && (
