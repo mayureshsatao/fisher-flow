@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Search,
   ShoppingCart,
@@ -15,10 +16,12 @@ import {
   Zap,
   ChevronDown,
   ChevronUp,
-  Beaker,
   CheckCircle,
   XCircle,
   ArrowRight,
+  X,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { SEGMENT_EXPLORER_SIMULATED_ERROR_MESSAGE } from "next/dist/next-devtools/userspace/app/segment-explorer-node";
 
@@ -33,6 +36,7 @@ const CompleteBioLabAgent = () => {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [supplierAnalysis, setSupplierAnalysis] = useState(null);
   const [items, setItems] = useState([]);
+  const [cartNotification, setCartNotification] = useState(null);
 
   // Mock AI API call (in real implementation, this calls Claude API)
   const analyzeExperimentWithAI = async (experimentText) => {
@@ -523,6 +527,7 @@ const CompleteBioLabAgent = () => {
     setLoading(true);
     setProtocols([]);
     setSelectedProtocol(null);
+    setCart([]); // Clear cart when analyzing new experiment
 
     try {
       // Simulate AI analysis
@@ -676,6 +681,46 @@ const CompleteBioLabAgent = () => {
     setCart([...cart, cartItem]);
   };
 
+  const addItemToCart = (item, alternative) => {
+    // Parse price
+    let priceValue = alternative.price;
+    if (typeof priceValue === 'string') {
+      priceValue = parseFloat(priceValue.replace(/[$,]/g, ''));
+    }
+    
+    const cartItem = {
+      id: `${item.name}-${alternative.supplier}-${Date.now()}`,
+      itemName: item.name || item.product || item.reagent,
+      description: item.description,
+      supplier: alternative.supplier || 'Unknown Supplier',
+      price: priceValue || 0,
+      quantity: 1,
+      shippingTime: alternative.shippingTime,
+      url: alternative.url,
+    };
+    setCart([...cart, cartItem]);
+    
+    // Show notification
+    setCartNotification(item.name || item.product || item.reagent);
+    setTimeout(() => setCartNotification(null), 2000);
+  };
+
+  const removeFromCart = (itemId) => {
+    setCart(cart.filter(item => item.id !== itemId));
+  };
+
+  const updateCartQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromCart(itemId);
+      return;
+    }
+    setCart(cart.map(item => 
+      item.id === itemId 
+        ? { ...item, quantity: newQuantity }
+        : item
+    ));
+  };
+
   const toggleProtocolDetails = (protocolId) => {
     setShowProtocolDetails((prev) => ({
       ...prev,
@@ -729,56 +774,67 @@ const CompleteBioLabAgent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-            <Beaker className="mr-3 text-blue-600" size={40} />
-            BioLab Protocol & Supply Intelligence
-          </h1>
-          <p className="text-xl text-gray-600">
-            AI-powered protocol optimization with comprehensive supplier
-            analysis
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+              <Image
+                src="/icon.png"
+                alt="FisherFlow"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
+            </div>
+            <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">
+            FisherFlow
+            </h1>
+          </div>
+          <p className="text-slate-600 text-base ml-[52px]">
+            Research protocol analysis and supplier comparison
           </p>
         </div>
 
         {/* Input Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
-            <Search className="mr-2" /> Describe Your Research Experiment
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-lg font-medium text-slate-900 mb-4">
+            Experiment Description
           </h2>
           <textarea
             value={experiment}
             onChange={(e) => setExperiment(e.target.value)}
-            placeholder="Example: I need to perform PCR amplification of DNA samples for downstream cloning into expression vectors. High fidelity is important, but I'm also budget-conscious. I have standard lab equipment available..."
-            className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Describe your research protocol and requirements..."
+            className="w-full h-32 p-4 border border-slate-300 rounded-md resize-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-sm text-slate-700 placeholder:text-slate-400"
           />
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center mt-5">
             <button
               onClick={analyzeExperiment}
               disabled={!experiment.trim() || loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center"
+              className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
             >
               {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
               ) : (
-                <Search className="mr-2" size={20} />
+                <Search size={16} />
               )}
-              {loading ? "Analyzing..." : "Analyze & Find Protocols"}
+              {loading ? "Analyzing" : "Analyze Protocol"}
             </button>
 
-            {(protocols.length > 0 || cart.length > 0) && (
-              <div className="flex space-x-3">
-                <span className="flex items-center text-sm text-gray-600">
-                  <ShoppingCart className="mr-1" size={16} />
-                  Cart: {cart.length} items (${calculateTotalCost().toFixed(2)})
-                </span>
+            {cart.length > 0 && (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <ShoppingCart size={16} />
+                  <span>{cart.length} {cart.length === 1 ? 'item' : 'items'}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="font-medium text-slate-900">${calculateTotalCost().toFixed(2)}</span>
+                </div>
                 <button
                   onClick={exportAnalysis}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-sm"
+                  className="border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
                 >
-                  <Download className="mr-1" size={16} />
+                  <Download size={14} />
                   Export
                 </button>
               </div>
@@ -786,94 +842,303 @@ const CompleteBioLabAgent = () => {
           </div>
         </div>
 
-        {/* Items Display */}
-        {items.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              <Package className="mr-2" />
-              Required Reagents & Equipment
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.map((item, idx) => (
+        {/* Cart Notification */}
+        {cartNotification && (
+          <div className="fixed top-4 right-4 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-in slide-in-from-top">
+            <CheckCircle size={18} />
+            <span className="text-sm font-medium">
+              {cartNotification} added to cart
+            </span>
+          </div>
+        )}
+
+        {/* Shopping Cart */}
+        {cart.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Shopping Cart
+              </h3>
+              <div className="text-sm text-slate-600">
+                Total: <span className="font-semibold text-slate-900">${calculateTotalCost().toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {cart.map((cartItem) => (
                 <div
-                  key={idx}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  key={cartItem.id}
+                  className="border border-slate-200 rounded-md p-4 hover:border-slate-300 transition-colors"
                 >
-                  <h4 className="font-semibold text-gray-800 mb-2">
-                    {item.name || item.product || item.reagent || `Item ${idx + 1}`}
-                  </h4>
-                  
-                  {item.description && (
-                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                  )}
-                  
-                  {item.supplier && (
-                    <div className="mb-2">
-                      <span className="text-xs font-medium text-gray-500">Supplier:</span>
-                      <span className="ml-2 text-sm text-gray-800">{item.supplier}</span>
-                    </div>
-                  )}
-                  
-                  {(item.shippingTime || item.shipping_time) && (
-                    <div className="mb-2">
-                      <span className="text-xs font-medium text-gray-500">Shipping:</span>
-                      <span className="ml-2 text-sm text-gray-800">{item.shippingTime || item.shipping_time}</span>
-                    </div>
-                  )}
-                  
-                  {item.urls && Array.isArray(item.urls) && item.urls.length > 0 && (
-                    <div className="mt-3">
-                      <span className="text-xs font-medium text-gray-500 block mb-1">Purchase Links:</span>
-                      <div className="space-y-1">
-                        {item.urls.slice(0, 3).map((url, urlIdx) => (
-                          <a
-                            key={urlIdx}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 underline block truncate"
-                          >
-                            {url}
-                          </a>
-                        ))}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-slate-900 text-sm mb-1">
+                            {cartItem.itemName || cartItem.reagentName}
+                          </h4>
+                          <div className="flex items-center gap-3 text-xs text-slate-600">
+                            <span>{cartItem.supplier}</span>
+                            {cartItem.shippingTime && (
+                              <>
+                                <span className="text-slate-400">•</span>
+                                <span className="flex items-center gap-1">
+                                  <Clock size={10} />
+                                  {cartItem.shippingTime}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-slate-900 mb-1">
+                            ${(cartItem.price * cartItem.quantity).toFixed(2)}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            ${cartItem.price.toFixed(2)} each
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  
-                  {item.price && (
-                    <div className="mt-2">
-                      <span className="text-sm font-semibold text-green-600">
-                        ${item.price}
+                  </div>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateCartQuantity(cartItem.id, cartItem.quantity - 1)}
+                        className="w-7 h-7 flex items-center justify-center border border-slate-300 rounded-md hover:border-slate-400 hover:bg-slate-50 transition-colors"
+                      >
+                        <Minus size={12} className="text-slate-600" />
+                      </button>
+                      <span className="text-sm font-medium text-slate-900 w-8 text-center">
+                        {cartItem.quantity}
                       </span>
+                      <button
+                        onClick={() => updateCartQuantity(cartItem.id, cartItem.quantity + 1)}
+                        className="w-7 h-7 flex items-center justify-center border border-slate-300 rounded-md hover:border-slate-400 hover:bg-slate-50 transition-colors"
+                      >
+                        <Plus size={12} className="text-slate-600" />
+                      </button>
                     </div>
-                  )}
+                    <button
+                      onClick={() => removeFromCart(cartItem.id)}
+                      className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* Items Display */}
+        {items.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                Required Reagents & Equipment
+              </h3>
+              <p className="text-sm text-slate-500">
+                {items.length} {items.length === 1 ? 'item' : 'items'} with supplier comparisons
+              </p>
+            </div>
+            <div className="space-y-5">
+              {items.map((item, idx) => {
+                const alternatives = item.alternatives || [];
+                // Fallback for old format
+                const hasAlternatives = alternatives.length > 0;
+                
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white border border-slate-200 rounded-lg p-6 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-slate-900 mb-2 text-base">
+                        {item.name || item.product || item.reagent || `Item ${idx + 1}`}
+                      </h4>
+                      
+                      {item.description && (
+                        <p className="text-sm text-slate-600 leading-relaxed">{item.description}</p>
+                      )}
+                    </div>
+                    
+                    {hasAlternatives ? (
+                      <div>
+                        <h5 className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-4">
+                          Supplier Options
+                        </h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {(() => {
+                            // Calculate prices and find the cheapest
+                            const prices = alternatives.map((alt) => {
+                              let priceValue = alt.price;
+                              if (typeof priceValue === 'string') {
+                                priceValue = parseFloat(priceValue.replace(/[$,]/g, ''));
+                              }
+                              return !isNaN(priceValue) && priceValue > 0 ? priceValue : Infinity;
+                            });
+                            const minPrice = Math.min(...prices);
+                            
+                            return alternatives.map((alt, altIdx) => {
+                              // Parse price - handle both string and number formats
+                              let priceValue = alt.price;
+                              if (typeof priceValue === 'string') {
+                                // Remove $ and commas, then parse
+                                priceValue = parseFloat(priceValue.replace(/[$,]/g, ''));
+                              }
+                              const isNumber = !isNaN(priceValue) && priceValue > 0;
+                              const isCheapest = isNumber && priceValue === minPrice && minPrice !== Infinity;
+                              
+                              return (
+                                <div
+                                  key={altIdx}
+                                  className={`border rounded-md p-4 transition-all ${
+                                    isCheapest
+                                      ? 'border-slate-900 bg-slate-50'
+                                      : 'border-slate-200 bg-white hover:border-slate-300'
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-start mb-3">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-slate-900 text-sm">
+                                          {alt.supplier || 'Unknown Supplier'}
+                                        </span>
+                                        {isCheapest && (
+                                          <span className="text-[10px] font-medium text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                            Best
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {isNumber && (
+                                      <span className={`text-lg font-semibold ${isCheapest ? 'text-slate-900' : 'text-slate-700'}`}>
+                                        ${priceValue.toFixed(2)}
+                                      </span>
+                                    )}
+                                    {!isNumber && alt.price && (
+                                      <span className="text-sm font-medium text-slate-600">
+                                        {alt.price}
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  {alt.shippingTime && (
+                                    <div className="mb-3 flex items-center gap-1.5">
+                                      <Clock size={12} className="text-slate-400" />
+                                      <span className="text-xs text-slate-600">{alt.shippingTime}</span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center gap-2 mt-3">
+                                    {alt.url && (
+                                      <a
+                                        href={alt.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-medium text-slate-600 hover:text-slate-900 underline flex-1"
+                                      >
+                                        View Product
+                                      </a>
+                                    )}
+                                    <button
+                                      onClick={() => addItemToCart(item, alt)}
+                                      className="text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-md transition-colors"
+                                    >
+                                      Add to Cart
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    ) : (
+                      // Fallback for old format (single supplier)
+                      <div className="space-y-2">
+                        {item.supplier && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-gray-500">Supplier:</span>
+                            <span className="ml-2 text-sm text-gray-800">{item.supplier}</span>
+                          </div>
+                        )}
+                        
+                        {(item.shippingTime || item.shipping_time) && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-gray-500">Shipping:</span>
+                            <span className="ml-2 text-sm text-gray-800">{item.shippingTime || item.shipping_time}</span>
+                          </div>
+                        )}
+                        
+                        {item.urls && Array.isArray(item.urls) && item.urls.length > 0 && (
+                          <div className="mt-3">
+                            <span className="text-xs font-medium text-gray-500 block mb-1">Purchase Links:</span>
+                            <div className="space-y-1">
+                              {item.urls.slice(0, 3).map((url, urlIdx) => (
+                                <a
+                                  key={urlIdx}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:text-blue-800 underline block truncate"
+                                >
+                                  {url}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {item.price && (
+                          <div className="mt-2">
+                            <span className="text-sm font-semibold text-green-600">
+                              ${item.price}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* AI Analysis Summary */}
         {aiAnalysis && (
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white mb-8">
-            <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <AlertCircle className="mr-2" />
-              AI Analysis Summary
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 mb-8">
+            <h3 className="text-base font-semibold text-white mb-5">
+              Analysis Summary
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold mb-2">🔬 Experiment Analysis</h4>
-                <ul className="text-sm space-y-1 opacity-90">
-                  <li>• Type: {aiAnalysis.experimentType}</li>
-                  <li>• Protocols Found: {aiAnalysis.protocolsFound}</li>
-                  <li>• Recommended: {aiAnalysis.recommendedApproach}</li>
-                </ul>
+                <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Experiment Details</h4>
+                <dl className="space-y-2">
+                  <div>
+                    <dt className="text-xs text-slate-400 mb-1">Type</dt>
+                    <dd className="text-sm text-white">{aiAnalysis.experimentType}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-400 mb-1">Protocols Found</dt>
+                    <dd className="text-sm text-white">{aiAnalysis.protocolsFound}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-400 mb-1">Recommended</dt>
+                    <dd className="text-sm text-white">{aiAnalysis.recommendedApproach}</dd>
+                  </div>
+                </dl>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">💡 Key Considerations</h4>
-                <ul className="text-sm space-y-1 opacity-90">
+                <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Considerations</h4>
+                <ul className="space-y-2">
                   {aiAnalysis.keyConsiderations.map((consideration, idx) => (
-                    <li key={idx}>• {consideration}</li>
+                    <li key={idx} className="text-sm text-slate-300 flex items-start">
+                      <span className="text-slate-500 mr-2">•</span>
+                      <span>{consideration}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -973,8 +1238,8 @@ const CompleteBioLabAgent = () => {
                       {comparisonView === "cost" && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                           <div>
-                            <h5 className="font-medium text-gray-800 mb-2">
-                              💰 Cost Benefits
+                            <h5 className="text-xs font-medium text-slate-700 mb-2 uppercase tracking-wide">
+                              Benefits
                             </h5>
                             <ul className="text-sm text-green-700 space-y-1">
                               {protocol.advantages
@@ -988,8 +1253,8 @@ const CompleteBioLabAgent = () => {
                             </ul>
                           </div>
                           <div>
-                            <h5 className="font-medium text-gray-800 mb-2">
-                              ⚠️ Cost Considerations
+                            <h5 className="text-xs font-medium text-slate-700 mb-2 uppercase tracking-wide">
+                              Considerations
                             </h5>
                             <ul className="text-sm text-red-700 space-y-1">
                               {protocol.disadvantages
@@ -1060,8 +1325,8 @@ const CompleteBioLabAgent = () => {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Reagents */}
                         <div>
-                          <h5 className="font-semibold text-gray-800 mb-4">
-                            🧪 Required Reagents
+                          <h5 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wide">
+                            Required Reagents
                           </h5>
                           {protocol.reagents?.map((reagent, rIdx) => (
                             <div
@@ -1142,8 +1407,8 @@ const CompleteBioLabAgent = () => {
 
                         {/* Protocol Steps */}
                         <div>
-                          <h5 className="font-semibold text-gray-800 mb-4">
-                            📋 Protocol Steps
+                          <h5 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wide">
+                            Protocol Steps
                           </h5>
                           {protocol.protocolSteps && (
                             <ol className="space-y-3">
@@ -1160,8 +1425,8 @@ const CompleteBioLabAgent = () => {
 
                           {protocol.equipment && (
                             <div className="mt-6">
-                              <h6 className="font-medium text-gray-800 mb-2">
-                                🔬 Required Equipment
+                              <h6 className="text-xs font-medium text-slate-700 mb-2 uppercase tracking-wide">
+                                Required Equipment
                               </h6>
                               <ul className="text-sm text-gray-600 space-y-1">
                                 {protocol.equipment.map((eq, eIdx) => (
@@ -1222,8 +1487,8 @@ const CompleteBioLabAgent = () => {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">
-                💡 AI Recommendations
+              <h4 className="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wide">
+                Recommendations
               </h4>
               <ul className="text-sm text-gray-700 space-y-1">
                 {supplierAnalysis.recommendations.map((rec, idx) => (
@@ -1239,59 +1504,42 @@ const CompleteBioLabAgent = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-8 text-center max-w-md">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Analyzing Your Experiment
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center max-w-sm shadow-xl">
+              <div className="animate-spin rounded-full h-12 w-12 border-2 border-slate-900 border-t-transparent mx-auto mb-4"></div>
+              <h3 className="text-base font-semibold text-slate-900 mb-2">
+                Analyzing Protocol
               </h3>
-              <p className="text-gray-600 mb-4">
-                AI is processing your requirements and finding optimal
-                protocols...
+              <p className="text-sm text-slate-600">
+                Processing requirements and supplier data...
               </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <div className="flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
-                  Identifying experimental requirements
-                </div>
-                <div className="flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
-                  Comparing protocol options
-                </div>
-                <div className="flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
-                  Analyzing supplier reliability
-                </div>
-                <div className="flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
-                  Optimizing cost recommendations
-                </div>
-              </div>
             </div>
           </div>
         )}
 
         {/* Sample Experiment Suggestions */}
         {protocols.length === 0 && !loading && (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              💡 Try These Example Experiments
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-base font-semibold text-slate-900 mb-1">
+              Example Protocols
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <p className="text-sm text-slate-500 mb-5">
+              Select an example to get started
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               <button
                 onClick={() =>
                   setExperiment(
                     "I need to perform high-fidelity PCR amplification of DNA samples for downstream cloning into expression vectors. Quality and accuracy are more important than speed."
                   )
                 }
-                className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="text-left p-4 border border-slate-200 rounded-md hover:border-slate-400 hover:bg-slate-50 transition-colors"
               >
-                <div className="font-medium text-gray-800 mb-2">
-                  🧬 High-Fidelity PCR for Cloning
+                <div className="font-medium text-slate-900 mb-1.5 text-sm">
+                  High-Fidelity PCR for Cloning
                 </div>
-                <div className="text-sm text-gray-600">
-                  Compare standard vs high-fidelity PCR protocols with cost and
-                  quality analysis
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  Compare standard vs high-fidelity PCR protocols with cost and quality analysis
                 </div>
               </button>
 
@@ -1301,14 +1549,13 @@ const CompleteBioLabAgent = () => {
                     "I need to establish mammalian cell culture for HEK293 cells. I want to compare serum-containing vs serum-free media options considering cost and reliability."
                   )
                 }
-                className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="text-left p-4 border border-slate-200 rounded-md hover:border-slate-400 hover:bg-slate-50 transition-colors"
               >
-                <div className="font-medium text-gray-800 mb-2">
-                  🦠 Cell Culture Setup
+                <div className="font-medium text-slate-900 mb-1.5 text-sm">
+                  Cell Culture Setup
                 </div>
-                <div className="text-sm text-gray-600">
-                  Analyze different media options with supplier trust scores and
-                  batch consistency
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  Analyze different media options with supplier trust scores and batch consistency
                 </div>
               </button>
 
@@ -1318,14 +1565,13 @@ const CompleteBioLabAgent = () => {
                     "I need to perform Western blot analysis for protein detection. I want the most reliable protocol with good supplier options for antibodies and reagents."
                   )
                 }
-                className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="text-left p-4 border border-slate-200 rounded-md hover:border-slate-400 hover:bg-slate-50 transition-colors"
               >
-                <div className="font-medium text-gray-800 mb-2">
-                  🔬 Western Blot Analysis
+                <div className="font-medium text-slate-900 mb-1.5 text-sm">
+                  Western Blot Analysis
                 </div>
-                <div className="text-sm text-gray-600">
-                  Protocol comparison with reagent criticality scoring and
-                  supplier reliability
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  Protocol comparison with reagent criticality scoring and supplier reliability
                 </div>
               </button>
             </div>

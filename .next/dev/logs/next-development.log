@@ -444,3 +444,78 @@ https://nextjs.org/docs/messages/module-not-found
 [00:18:34.190] Server  LOG      ✓ Compiled in 40ms
 [00:18:49.647] Server  LOG      ✓ Compiled in 22ms
 [00:19:10.751] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:29:16.434] Server  LOG      ✓ Compiled in 68ms
+[00:29:27.847] Server  LOG      ✓ Compiled in 59ms
+[00:29:28.723] Browser ERROR   ./app/app/page.jsx:895:25
+Parsing ecmascript source code failed
+  893 |                             );
+  894 |                           })}
+> 895 |                         </div>
+      |                         ^
+  896 |                       </div>
+  897 |                     ) : (
+  898 |                       // Fallback for old format (single supplier)
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./app/app/page.jsx [Client Component Browser]
+    ./app/app/page.jsx [Server Component]
+
+  Client Component SSR:
+    ./app/app/page.jsx [Client Component SSR]
+    ./app/app/page.jsx [Server Component]
+[00:29:28.723] Browser ERROR   ./app/app/page.jsx:895:26
+Parsing ecmascript source code failed
+  893 |                             );
+  894 |                           })}
+> 895 |                         </div>
+      |                          ^^^^^
+  896 |                       </div>
+  897 |                     ) : (
+  898 |                       // Fallback for old format (single supplier)
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/app/page.jsx [Client Component Browser]
+    ./app/app/page.jsx [Server Component]
+
+  Client Component SSR:
+    ./app/app/page.jsx [Client Component SSR]
+    ./app/app/page.jsx [Server Component]
+[00:29:28.910] Server  LOG      ✓ Compiled in 135ms
+[00:30:14.827] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:30:30.879] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:55.333] Server  LOG      ✓ Compiled in 75ms
+[00:36:00.195] Server  LOG      ✓ Compiled in 65ms
+[00:36:04.024] Server  LOG      ✓ Compiled in 74ms
+[00:36:11.470] Server  LOG      ✓ Compiled in 154ms
+[00:36:25.397] Server  LOG      ✓ Compiled in 46ms
+[00:36:35.067] Server  LOG      ✓ Compiled in 46ms
+[00:36:46.291] Server  LOG      ✓ Compiled in 25ms
+[00:36:48.057] Server  LOG      ✓ Compiled in 26ms
+[00:36:48.770] Server  LOG      ✓ Compiled in 30ms
+[00:36:49.583] Server  LOG      ✓ Compiled in 27ms
+[00:36:52.547] Server  LOG      ✓ Compiled in 24ms
+[00:36:53.481] Server  LOG      ✓ Compiled in 40ms
+[00:37:04.697] Server  LOG      ✓ Compiled in 56ms
+[00:37:17.708] Server  LOG      ✓ Compiled in 53ms
+[00:37:39.608] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:39:00.171] Server  LOG      ✓ Compiled in 47ms
+[00:39:03.284] Server  LOG      ✓ Compiled in 26ms
+[00:39:05.296] Server  LOG      ✓ Compiled in 40ms
+[00:39:08.649] Server  LOG      ✓ Compiled in 42ms
+[00:39:16.380] Server  LOG      ✓ Compiled in 90ms
+[00:39:26.191] Server  LOG      ✓ Compiled in 45ms
+[00:39:31.627] Server  LOG      ✓ Compiled in 26ms
+[00:39:33.203] Server  LOG      ✓ Compiled in 45ms
+[00:39:40.300] Server  LOG      ✓ Compiled in 31ms
+[00:42:36.627] Server  LOG      ✓ Compiled in 35ms
+[00:45:31.602] Browser ERROR   uncaughtError: ReferenceError: Beaker is not defined
+[00:45:32.703] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:45:32.711] Server  LOG      ✓ Compiled in 86ms
+[00:45:33.622] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:45:47.713] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

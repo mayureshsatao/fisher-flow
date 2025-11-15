@@ -17,16 +17,34 @@ export async function POST(request: NextRequest) {
     // Check if Google API key is configured
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-    const instructions = `Given this protocol: ${protocol_name}. Generate all the information about the ingredients and machinery that will be used to conduct the experiment. For every product/reagent, its crucial to know the supplier, description, average shipping time to Boston, MA, and atleast 3 URLs to buy it online. 
+    const instructions = `Given this protocol: ${protocol_name}. Generate all the information about the only 10 ingredients that will be used to conduct the experiment. 
+
+For every product/reagent, provide at least 3 different supplier alternatives so users can compare prices. Each alternative should include: supplier name, price, average shipping time to Boston, MA, and at least 1 purchase URL.
 
 Return the response as a JSON array of objects. Each object should have the following structure:
 {
   "name": "product name",
-  "description": "detailed description",
-  "supplier": "supplier name",
-  "shippingTime": "shipping time to Boston, MA",
-  "urls": ["url1", "url2", "url3"],
-  "price": "price if available"
+  "description": "detailed description of the product/reagent",
+  "alternatives": [
+    {
+      "supplier": "supplier name 1",
+      "price": "price as number or string (e.g., 45.99 or '$45.99')",
+      "shippingTime": "shipping time to Boston, MA",
+      "url": "purchase URL"
+    },
+    {
+      "supplier": "supplier name 2",
+      "price": "price as number or string",
+      "shippingTime": "shipping time to Boston, MA",
+      "url": "purchase URL"
+    },
+    {
+      "supplier": "supplier name 3",
+      "price": "price as number or string",
+      "shippingTime": "shipping time to Boston, MA",
+      "url": "purchase URL"
+    }
+  ]
 }
 
 Return ONLY valid JSON, no markdown formatting or additional text.`
