@@ -1,3 +1,5 @@
+
+.env
 # Created by https://www.toptal.com/developers/gitignore/api/node,nextjs,visualstudiocode,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,nextjs,visualstudiocode,macos
 
@@ -60,7 +62,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env*.local
+
+*.local
 
 # vercel
 .vercel
