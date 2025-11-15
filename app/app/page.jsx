@@ -540,7 +540,7 @@ const CompleteBioLabAgent = () => {
         setItems(data.items);
       } else {
         setItems([]);
-        console.warn('No items found in response:', data);
+        console.warn("No items found in response:", data);
       }
       // setProtocols(analysisResult);
       // if (analysisResult.length > 0) {
@@ -752,7 +752,7 @@ const CompleteBioLabAgent = () => {
             value={experiment}
             onChange={(e) => setExperiment(e.target.value)}
             placeholder="Example: I need to perform PCR amplification of DNA samples for downstream cloning into expression vectors. High fidelity is important, but I'm also budget-conscious. I have standard lab equipment available..."
-            className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-400"
           />
           <div className="flex justify-between items-center mt-4">
             <button
@@ -800,46 +800,63 @@ const CompleteBioLabAgent = () => {
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <h4 className="font-semibold text-gray-800 mb-2">
-                    {item.name || item.product || item.reagent || `Item ${idx + 1}`}
+                    {item.name ||
+                      item.product ||
+                      item.reagent ||
+                      `Item ${idx + 1}`}
                   </h4>
-                  
+
                   {item.description && (
-                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {item.description}
+                    </p>
                   )}
-                  
+
                   {item.supplier && (
                     <div className="mb-2">
-                      <span className="text-xs font-medium text-gray-500">Supplier:</span>
-                      <span className="ml-2 text-sm text-gray-800">{item.supplier}</span>
+                      <span className="text-xs font-medium text-gray-500">
+                        Supplier:
+                      </span>
+                      <span className="ml-2 text-sm text-gray-800">
+                        {item.supplier}
+                      </span>
                     </div>
                   )}
-                  
+
                   {(item.shippingTime || item.shipping_time) && (
                     <div className="mb-2">
-                      <span className="text-xs font-medium text-gray-500">Shipping:</span>
-                      <span className="ml-2 text-sm text-gray-800">{item.shippingTime || item.shipping_time}</span>
+                      <span className="text-xs font-medium text-gray-500">
+                        Shipping:
+                      </span>
+                      <span className="ml-2 text-sm text-gray-800">
+                        {item.shippingTime || item.shipping_time}
+                      </span>
                     </div>
                   )}
-                  
-                  {item.urls && Array.isArray(item.urls) && item.urls.length > 0 && (
-                    <div className="mt-3">
-                      <span className="text-xs font-medium text-gray-500 block mb-1">Purchase Links:</span>
-                      <div className="space-y-1">
-                        {item.urls.slice(0, 3).map((url, urlIdx) => (
-                          <a
-                            key={urlIdx}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 underline block truncate"
-                          >
-                            {url}
-                          </a>
-                        ))}
+
+                  {item.urls &&
+                    Array.isArray(item.urls) &&
+                    item.urls.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-xs font-medium text-gray-500 block mb-1">
+                          Purchase Links:
+                        </span>
+                        <div className="space-y-1">
+                          {item.urls.slice(0, 3).map((url, urlIdx) => (
+                            <a
+                              key={urlIdx}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 underline block truncate"
+                            >
+                              {url}
+                            </a>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
+                    )}
+
                   {item.price && (
                     <div className="mt-2">
                       <span className="text-sm font-semibold text-green-600">
