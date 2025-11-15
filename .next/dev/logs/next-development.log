@@ -1,1 +1,6 @@
-[00:00:00.937] Server  LOG      ✓ Ready in 693ms
+[00:00:00.890] Server  WARN     ⚠ Duplicate page detected. app/app/page.jsx and app/app/page.tsx resolve to /app
+[00:00:00.890] Server  WARN     ⚠ Duplicate page detected. app/app/page.jsx and app/app/page.tsx resolve to /app
+[00:00:00.892] Server  LOG      ✓ Ready in 643ms
+[00:00:04.613] Server  ERROR   Error processing request: SyntaxError: Expected ':' after property name in JSON at position 62 (line 1 column 63)
+[00:00:30.821] Server  ERROR   Error processing request: SyntaxError: Expected ':' after property name in JSON at position 62 (line 1 column 63)
+[00:00:50.119] Server  ERROR   Error processing request: SyntaxError: Expected ':' after property name in JSON at position 62 (line 1 column 63)

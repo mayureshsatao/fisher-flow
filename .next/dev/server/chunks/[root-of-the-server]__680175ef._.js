@@ -51,8 +51,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$ai$2f$dist$2
 async function POST(request) {
     try {
         const body = await request.json();
-        const { prompt } = body;
-        if (!prompt || typeof prompt !== 'string') {
+        const { protocol_name } = body;
+        if (!protocol_name || typeof protocol_name !== 'string') {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Prompt is required and must be a string'
             }, {
@@ -61,6 +61,7 @@ async function POST(request) {
         }
         // Check if Google API key is configured
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+        const instructions = `Given this protocol: ${protocol_name}. Generate all the information about the ingredients and machinery that will be used to conduct the experiment. For every product/reagent, its crucial to know the supplier, description, average shipping time to Boston, MA, and atleast 3 URLs to buy it online. Provide the information in JSON format.`;
         if (!apiKey) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Google API key is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY in your environment variables.'
@@ -71,7 +72,7 @@ async function POST(request) {
         // Generate text using Google Gemini via Vercel AI SDK
         const { text } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$ai$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["generateText"])({
             model: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$ai$2d$sdk$2f$google$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__["google"])(process.env.GOOGLE_MODEL || 'gemini-2.5-flash'),
-            prompt: prompt,
+            prompt: instructions,
             temperature: 0.7
         });
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({

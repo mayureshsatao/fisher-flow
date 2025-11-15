@@ -5,9 +5,9 @@ import { generateText } from 'ai';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { prompt } = body;
+    const { protocol_name } = body;
 
-    if (!prompt || typeof prompt !== 'string') {
+    if (!protocol_name || typeof protocol_name !== 'string') {
       return NextResponse.json(
         { error: 'Prompt is required and must be a string' },
         { status: 400 }
@@ -16,6 +16,8 @@ export async function POST(request: NextRequest) {
 
     // Check if Google API key is configured
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+    const instructions = `Given this protocol: ${protocol_name}. Generate all the information about the ingredients and machinery that will be used to conduct the experiment. For every product/reagent, its crucial to know the supplier, description, average shipping time to Boston, MA, and atleast 3 URLs to buy it online. Provide the information in JSON format.`
     
     if (!apiKey) {
       return NextResponse.json(
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Generate text using Google Gemini via Vercel AI SDK
     const { text } = await generateText({
       model: google(process.env.GOOGLE_MODEL || 'gemini-2.5-flash'),
-      prompt: prompt,
+      prompt: instructions,
       temperature: 0.7,
     });
 
